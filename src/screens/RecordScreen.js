@@ -8,7 +8,13 @@ import Colors from '../constants/Colors';
 import storage from '../services/storage';
 import mock from '../data/recording';
 
+import Voice from 'react-native-voice';
+
 export default class RecordScreen extends React.Component {
+  constructor(props) {
+    super(props);
+    Voice.onSpeechResults = this.onSpeechResults.bind(this);
+  }
   static navigationOptions = {
     header: null
   };
@@ -17,12 +23,13 @@ export default class RecordScreen extends React.Component {
     timer: null,
     startTime: null,
     currentTime: 0,
-    isRecording: false
+    isRecording: false,
+    transcript: ''
   };
 
   render() {
     const { settings } = this.props.screenProps;
-    const minutes = this.state.currentTime / 60;
+    const minutes = Math.floor(this.state.currentTime / 60);
     const seconds = this.state.currentTime % 60;
     const minStr = minutes.toFixed(0).toString();
     const secStr = seconds < 10 ? `0${seconds}` : `${seconds}`;
@@ -52,14 +59,33 @@ export default class RecordScreen extends React.Component {
         <View style={styles.promptContainer}>
           <Text style={styles.promptText}>Tap the mic to start recording.</Text>
         </View>
+        <ScrollView>
+          <Text>{this.state.transcript}</Text>
+        </ScrollView>
       </View>
     );
+  }
+
+  onSpeechResults(event) {
+    this.setState({
+      transcript: event.value
+    });
+  }
+
+  toggleSpeech() {
+    if (this.state.isRecording) {
+      Voice.stop();
+    } else {
+      this.setState({ transcript: '' });
+      Voice.start('en');
+    }
   }
 
   handleRecordPress(recording) {
     this.setState({ isRecording: recording });
     this.setState({ startTime: new Date() });
     this.toggleTimer();
+    this.toggleSpeech();
     if (!recording) this._addRecording();
   }
 
