@@ -1,5 +1,12 @@
 import React from 'react';
-import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Button
+} from 'react-native';
 import Touchable from 'react-native-platform-touchable';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -7,6 +14,7 @@ import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import Colors from '../constants/Colors';
 import storage from '../services/storage';
 import mock from '../data/recording';
+import sound from '../services/sound';
 
 import Voice from 'react-native-voice';
 
@@ -59,11 +67,16 @@ export default class RecordScreen extends React.Component {
         <View style={styles.promptContainer}>
           <Text style={styles.promptText}>Tap the mic to start recording.</Text>
         </View>
+        <Button onPress={this.onSoundButton} title="Let there be sound!" />
         <ScrollView>
           <Text>{this.state.transcript}</Text>
         </ScrollView>
       </View>
     );
+  }
+
+  onSoundButton() {
+    sound.playSound();
   }
 
   onSpeechResults(event) {
