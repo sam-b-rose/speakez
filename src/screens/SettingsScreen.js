@@ -35,7 +35,6 @@ export default class SettingsScreen extends React.Component {
   }
 
   _updatePlaySound(value) {
-    console.log('Toggle value: ', value);
     const { settings } = this.props.screenProps.appState;
     this.props.screenProps.setAppState({
       settings: {

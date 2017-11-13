@@ -99,32 +99,33 @@ const styles = StyleSheet.create({
     width: 50,
     flex: 0,
     margin: 10,
-    padding: 20,
+    padding: 30,
     fontSize: 28
   },
   fillerWord: {
-    alignSelf: 'stretch',
+    alignSelf: 'flex-start',
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    margin: 15,
+    margin: 10,
     paddingLeft: 30,
     paddingRight: 0,
-    height: 70,
-    backgroundColor: '#60A9D7',
+    height: 50,
+    backgroundColor: Colors.tintColor,
     borderRadius: 100
   },
   fillerWordText: {
-    color: '#fff'
+    color: '#fff',
+    paddingRight: 15
   },
   removeFillerWord: {
-    backgroundColor: Colors.tintColor,
-    borderColor: Colors.tintColor,
+    backgroundColor: '#76BEFF',
+    borderColor: '#76BEFF',
     borderWidth: 1,
     borderRadius: 100,
-    height: 70,
-    width: 70,
+    height: 50,
+    width: 50,
     alignItems: 'center',
     justifyContent: 'center'
   },

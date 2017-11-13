@@ -10,7 +10,6 @@ import storage from '../services/storage';
 export default class ResultsScreen extends React.Component {
   static navigationOptions = ({ navigation }) => {
     const { params = {} } = navigation.state;
-    console.log(params);
     return {
       title: 'Results',
       headerRight: (
