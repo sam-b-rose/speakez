@@ -3,6 +3,8 @@ package com.speakez;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.zmxv.RNSound.RNSoundPackage;
+import com.wenkesj.voice.VoicePackage;
 import com.horcrux.svg.SvgPackage;
 import com.reactnative.photoview.PhotoViewPackage;
 import cl.json.RNSharePackage;
@@ -28,6 +30,8 @@ public class MainApplication extends Application implements ReactApplication {
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
+            new RNSoundPackage(),
+            new VoicePackage(),
             new SvgPackage(),
             new PhotoViewPackage(),
             new RNSharePackage(),

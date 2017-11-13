@@ -1,14 +1,27 @@
 import React from 'react';
-import { Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Button
+} from 'react-native';
 import Touchable from 'react-native-platform-touchable';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
+import Voice from 'react-native-voice';
 
 import Colors from '../constants/Colors';
-import storage from '../services/storage';
 import mock from '../data/recording';
+import sound from '../services/sound';
+import storage from '../services/storage';
 
 export default class RecordScreen extends React.Component {
+  constructor(props) {
+    super(props);
+    Voice.onSpeechResults = this.onSpeechResults.bind(this);
+  }
   static navigationOptions = {
     header: null
   };
@@ -17,12 +30,14 @@ export default class RecordScreen extends React.Component {
     timer: null,
     startTime: null,
     currentTime: 0,
-    isRecording: false
+    isRecording: false,
+    fillerRegEx: null,
+    transcript: '',
+    displayText: ''
   };
 
   render() {
-    const { settings } = this.props.screenProps;
-    const minutes = this.state.currentTime / 60;
+    const minutes = Math.floor(this.state.currentTime / 60);
     const seconds = this.state.currentTime % 60;
     const minStr = minutes.toFixed(0).toString();
     const secStr = seconds < 10 ? `0${seconds}` : `${seconds}`;
@@ -48,18 +63,50 @@ export default class RecordScreen extends React.Component {
             />
           </View>
         </Touchable>
-
         <View style={styles.promptContainer}>
-          <Text style={styles.promptText}>Tap the mic to start recording.</Text>
+          <Text style={styles.promptText}>
+            {this.state.isRecording ? (
+              this.state.displayText
+            ) : (
+              'Tap the mic to start recording.'
+            )}
+          </Text>
         </View>
       </View>
     );
+  }
+
+  onSpeechResults({ value }) {
+    const text = value.shift();
+    const isPlaySound = this.props.screenProps.appState.settings.playSound;
+
+    if (!text) return;
+    if (isPlaySound) {
+      const endIdx = this.state.transcript.length;
+      const diff = text.substring(endIdx);
+      if (diff.search(this.state.fillerRegEx) != -1) sound.playSound();
+    }
+
+    this.setState({
+      transcript: text,
+      displayText: text.substring(text.length - 30),
+    });
+  }
+
+  toggleSpeech() {
+    if (this.state.isRecording) {
+      Voice.stop();
+    } else {
+      this.setState({ transcript: '' });
+      Voice.start('en');
+    }
   }
 
   handleRecordPress(recording) {
     this.setState({ isRecording: recording });
     this.setState({ startTime: new Date() });
     this.toggleTimer();
+    this.toggleSpeech();
     if (!recording) this._addRecording();
   }
 
@@ -71,6 +118,7 @@ export default class RecordScreen extends React.Component {
     if (this.state.isRecording) {
       clearInterval(this.state.timer);
     } else {
+      this._buildRegEx();
       this.setState({ currentTime: 0 });
       this.state.timer = setInterval(() => {
         current = new Date() - this.state.startTime;
@@ -87,6 +135,15 @@ export default class RecordScreen extends React.Component {
       recordings: newRecs
     });
   };
+
+  _buildRegEx() {
+    const { fillerWords } = this.props.screenProps.appState.settings;
+    const fillerRegEx = new RegExp(
+      `\\b${fillerWords.join('\\b|\\b')}\\b`,
+      'ig'
+    );
+    this.setState({ fillerRegEx });
+  }
 }
 
 const lightTextColor = 'rgba(96,100,109, 1)';
@@ -108,6 +165,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent'
   },
   timerText: {
+    position: 'absolute',
+    top: 35,
     fontSize: 42,
     fontWeight: '100'
   },
@@ -127,6 +186,8 @@ const styles = StyleSheet.create({
     textAlign: 'center'
   },
   promptContainer: {
+    position: 'absolute',
+    bottom: 50,
     alignItems: 'center',
     margin: 50
   },

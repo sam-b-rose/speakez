@@ -9,10 +9,8 @@ const setup = async (initial = recordings) => {
   const data = await get();
 
   if (data !== null) {
-    console.log('We have data!!', data);
     initial = data;
   } else {
-    console.log('No data... default to nothing.');
     recordings = initial;
     await set();
   }
@@ -21,7 +19,6 @@ const setup = async (initial = recordings) => {
 };
 
 const get = async () => {
-  console.log('Getting....');
   try {
     const data = await AsyncStorage.getItem(DATA_KEY);
     return JSON.parse(data);
