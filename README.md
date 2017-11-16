@@ -15,12 +15,6 @@ npm install
 # install the React Native CLI
 npm install -g react-native-cli
 
-# Upgrage native projects
-react-native upgrade
-
-# link native modules
-react-native link
-
 # start it up
 react-native run-ios
 ```
