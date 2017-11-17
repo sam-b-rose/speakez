@@ -1,4 +1,6 @@
 import moment from 'moment';
+import dateFns from 'date-fns';
+import format from 'format-duration';
 
 function randInt(max = 1, min = 0) {
   return Math.round(Math.random() * max) + min;
@@ -72,7 +74,46 @@ function mockRecording() {
   };
 }
 
+function createRecording({ created, transcript, fillers }) {
+  const now = new Date();
+  const duration = dateFns.differenceInMilliseconds(now, created);
+  const totalWords = transcript.split(' ').length;
+  const pace = Math.round(totalWords / ((duration / 1000) / 60));
+  const fillerCount = Object.keys(fillers).reduce((count, word) => {
+    return count + fillers[word];
+  }, 0);
+
+  return {
+    created,
+    transcript,
+    results: {
+      time: {
+        value: duration,
+        display: format(duration),
+        label: 'Time'
+      },
+      totalWords: {
+        value: totalWords,
+        display: `${totalWords} words`,
+        label: 'All Words'
+      },
+      pace: {
+        value: pace,
+        display: `${pace} words/min`,
+        label: 'Pace'
+      },
+      fillers: {
+        value: fillerCount,
+        display: fillerCount,
+        label: 'Fillers',
+        details: fillers
+      }
+    }
+  };
+}
+
 export default {
+  createRecording,
   generateRecording,
   data: Array.from({ length: 6 }, generateRecording)
 };

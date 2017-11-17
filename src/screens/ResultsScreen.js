@@ -62,7 +62,6 @@ export default class ResultsScreen extends React.Component {
   }
 
   _deleteConfirm() {
-    console.log('confirmation', this);
     Alert.alert(
       'Delete Recording',
       'Are you sure you want to delete this recording?',

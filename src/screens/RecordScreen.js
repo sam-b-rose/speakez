@@ -20,7 +20,7 @@ import storage from '../services/storage';
 export default class RecordScreen extends React.Component {
   constructor(props) {
     super(props);
-    Voice.onSpeechResults = this.onSpeechResults.bind(this);
+    Voice.onSpeechResults = this._onSpeechResults.bind(this);
   }
   static navigationOptions = {
     header: null
@@ -33,6 +33,7 @@ export default class RecordScreen extends React.Component {
     isRecording: false,
     fillerRegEx: null,
     transcript: '',
+    fillers: {},
     displayText: ''
   };
 
@@ -76,45 +77,23 @@ export default class RecordScreen extends React.Component {
     );
   }
 
-  onSpeechResults({ value }) {
-    const text = value.shift();
-    const isPlaySound = this.props.screenProps.appState.settings.playSound;
-
-    if (!text) return;
-    if (isPlaySound) {
-      const endIdx = this.state.transcript.length;
-      const diff = text.substring(endIdx);
-      if (diff.search(this.state.fillerRegEx) != -1) sound.playSound();
-    }
-
-    this.setState({
-      transcript: text,
-      displayText: text.substring(text.length - 30),
-    });
-  }
-
-  toggleSpeech() {
-    if (this.state.isRecording) {
-      Voice.stop();
-    } else {
-      this.setState({ transcript: '' });
-      Voice.start('en');
-    }
-  }
-
-  handleRecordPress(recording) {
-    this.setState({ isRecording: recording });
-    this.setState({ startTime: new Date() });
-    this.toggleTimer();
-    this.toggleSpeech();
-    if (!recording) this._addRecording();
-  }
-
   handlePressSettings() {
     this.props.navigation.navigate('Settings');
   }
 
-  toggleTimer() {
+  handleRecordPress(isRecording) {
+    this.setState({
+      isRecording,
+      startTime: new Date()
+    });
+
+    this._toggleTimer();
+    this._toggleSpeech();
+
+    if (!isRecording) this._addRecording();
+  }
+
+  _toggleTimer() {
     if (this.state.isRecording) {
       clearInterval(this.state.timer);
     } else {
@@ -127,13 +106,28 @@ export default class RecordScreen extends React.Component {
     }
   }
 
+  _toggleSpeech() {
+    if (this.state.isRecording) {
+      Voice.stop();
+    } else {
+      this.setState({ transcript: '', fillers: {} });
+      Voice.start('en');
+    }
+  }
+
   _addRecording = async () => {
-    const rec = mock.generateRecording();
+    const rec = mock.createRecording({
+      created: this.state.startTime,
+      transcript: this.state.transcript,
+      fillers: this.state.fillers
+    });
+    console.log('New Rec: ', rec);
     const newRecs = await storage.add(rec);
     const { recordings } = this.props.screenProps.appState;
     this.props.screenProps.setAppState({
       recordings: newRecs
     });
+    this.setState({ transcript: '', fillers: {} });
   };
 
   _buildRegEx() {
@@ -143,6 +137,32 @@ export default class RecordScreen extends React.Component {
       'ig'
     );
     this.setState({ fillerRegEx });
+  }
+
+  _onSpeechResults({ value }) {
+    const text = value.shift();
+    const isPlaySound = this.props.screenProps.appState.settings.playSound;
+
+    if (!text) return;
+    if (isPlaySound) {
+      const endIdx = this.state.transcript.length;
+      const diff = text.substring(endIdx);
+      if (diff.search(this.state.fillerRegEx) != -1) {
+        sound.playSound();
+        const matches =  diff.match(this.state.fillerRegEx);
+        if (matches) {
+          matches.forEach((filler) => {
+            if (!this.state.fillers[filler]) this.state.fillers[filler] = 0;
+            this.state.fillers[filler] += 1;
+          });
+        }
+      }
+    }
+
+    this.setState({
+      transcript: text,
+      displayText: text.substring(text.length - 30),
+    });
   }
 }
 
