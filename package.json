@@ -16,6 +16,8 @@
 		"moment": "^2.19.2",
 		"react": "16.0.0-alpha.12",
 		"react-native": "0.50.3",
+		"react-native-linear-gradient": "^2.3.0",
+		"react-native-photo-view": "^1.5.2",
 		"react-native-platform-touchable": "^1.1.1",
 		"react-native-sound": "^0.10.4",
 		"react-native-svg": "^6.0.0",

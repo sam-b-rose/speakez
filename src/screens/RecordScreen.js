@@ -33,8 +33,9 @@ export default class RecordScreen extends React.Component {
     isRecording: false,
     fillerRegEx: null,
     transcript: '',
-    fillers: {},
-    displayText: ''
+    displayText: '',
+    lastDiff: null,
+    fillers: {}
   };
 
   render() {
@@ -42,6 +43,9 @@ export default class RecordScreen extends React.Component {
     const seconds = this.state.currentTime % 60;
     const minStr = minutes.toFixed(0).toString();
     const secStr = seconds < 10 ? `0${seconds}` : `${seconds}`;
+    const fillerCount = Object.keys(this.state.fillers).reduce((count, word) => {
+      return count + this.state.fillers[word];
+    }, 0);
     return (
       <View style={styles.container}>
         <Touchable
@@ -52,6 +56,7 @@ export default class RecordScreen extends React.Component {
           <FontAwesome name={'gear'} size={24} style={styles.settingsIcon} />
         </Touchable>
         <Text style={styles.timerText}>{`${minStr}:${secStr}`}</Text>
+        <Text style={styles.fillerCount}>TOTAL {fillerCount}</Text>
         <Touchable
           onPress={() => {
             this.handleRecordPress(!this.state.isRecording);
@@ -110,7 +115,12 @@ export default class RecordScreen extends React.Component {
     if (this.state.isRecording) {
       Voice.stop();
     } else {
-      this.setState({ transcript: '', fillers: {} });
+      this.setState({
+        transcript: '',
+        displayText: '',
+        lastDiff: null,
+        fillers: {}
+      });
       Voice.start('en');
     }
   }
@@ -127,7 +137,6 @@ export default class RecordScreen extends React.Component {
     this.props.screenProps.setAppState({
       recordings: newRecs
     });
-    this.setState({ transcript: '', fillers: {} });
   };
 
   _buildRegEx() {
@@ -144,19 +153,22 @@ export default class RecordScreen extends React.Component {
     const isPlaySound = this.props.screenProps.appState.settings.playSound;
 
     if (!text) return;
-    if (isPlaySound) {
-      const endIdx = this.state.transcript.length;
+    if (isPlaySound  && this.state.isRecording) {
+      const endIdx = this.state.transcript.length ;
       const diff = text.substring(endIdx);
-      if (diff.search(this.state.fillerRegEx) != -1) {
-        sound.playSound();
-        const matches =  diff.match(this.state.fillerRegEx);
-        if (matches) {
-          matches.forEach((filler) => {
-            if (!this.state.fillers[filler]) this.state.fillers[filler] = 0;
-            this.state.fillers[filler] += 1;
-          });
-        }
+      if (this.state.lastDiff === diff) return;
+
+      const matches =  diff.match(this.state.fillerRegEx);
+      console.log(diff, matches)
+      if (matches) {
+        matches.forEach((filler) => {
+          sound.playSound();
+          if (!this.state.fillers[filler]) this.state.fillers[filler] = 0;
+          this.state.fillers[filler] += 1;
+        });
       }
+
+      this.setState({ lastDiff: diff });
     }
 
     this.setState({
@@ -189,6 +201,12 @@ const styles = StyleSheet.create({
     top: 35,
     fontSize: 42,
     fontWeight: '100'
+  },
+  fillerCount: {
+    position: 'absolute',
+    top: 90,
+    fontSize: 16,
+    fontWeight: '300'
   },
   recordContainer: {
     alignItems: 'center',
