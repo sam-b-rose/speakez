@@ -2,7 +2,12 @@ import React from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import { Icon, Row, Text } from '@shoutem/ui';
 import Touchable from 'react-native-platform-touchable';
-import { VictoryAxis, VictoryBar, VictoryChart, VictoryLabel } from 'victory-native';
+import {
+  VictoryAxis,
+  VictoryBar,
+  VictoryChart,
+  VictoryLabel
+} from 'victory-native';
 
 import HighlightText from '../components/HighlightText';
 import Colors from '../constants/Colors';
@@ -26,17 +31,20 @@ export default class MetricScreen extends React.Component {
     return (
       <View style={styles.container}>
         <VictoryChart domainPadding={15}>
-          <VictoryAxis dependentAxis
+          <VictoryAxis
+            dependentAxis
             style={{
-              axis: {stroke: Colors.tabIconDefault},
-              tickLabels: {color: Colors.lightTextColor}
+              axis: { stroke: Colors.tabIconDefault },
+              tickLabels: { color: Colors.lightTextColor }
             }}
-            tickLabelComponent={<VictoryLabel dx={20} dy={-20} textAnchor="start"/>}
+            tickLabelComponent={
+              <VictoryLabel dx={20} dy={-20} textAnchor="start" />
+            }
           />
           <VictoryAxis
             style={{
-              axis: {stroke: Colors.tabIconDefault},
-              tickLabels: {color: Colors.lightTextColor}
+              axis: { stroke: Colors.tabIconDefault },
+              tickLabels: { color: Colors.lightTextColor }
             }}
           />
           <VictoryBar
@@ -62,7 +70,8 @@ const styles = StyleSheet.create({
     flex: 1
   },
   transcript: {
-    margin: 30,
-    fontSize: 18,
+    marginLeft: 30,
+    marginRight: 30,
+    fontSize: 18
   }
 });

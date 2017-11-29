@@ -7,7 +7,6 @@ import {
   View,
   Button
 } from 'react-native';
-import HighlightedText from '../components/HighlightText';
 import Touchable from 'react-native-platform-touchable';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -34,9 +33,10 @@ export default class RecordScreen extends React.Component {
     isRecording: false,
     fillerRegEx: null,
     bufferPos: 0,
+    lastBuffer: '',
     displayText: [],
     transcript: [],
-    fillers: {},
+    fillers: {}
   };
 
   render() {
@@ -44,7 +44,9 @@ export default class RecordScreen extends React.Component {
     const seconds = this.state.currentTime % 60;
     const minStr = minutes.toFixed(0).toString();
     const secStr = seconds < 10 ? `0${seconds}` : `${seconds}`;
-    const fillerCount = Object.keys(this.state.fillers).reduce((count, word) => {
+    const fillerCount = Object.keys(
+      this.state.fillers
+    ).reduce((count, word) => {
       return count + this.state.fillers[word];
     }, 0);
     return (
@@ -71,13 +73,11 @@ export default class RecordScreen extends React.Component {
           </View>
         </Touchable>
         <View style={styles.promptContainer}>
-          <HighlightedText style={styles.promptText}>
-            {this.state.isRecording ? (
-              this.state.displayText
-            ) : (
-              ['Tap the mic to start recording.']
-            )}
-          </HighlightedText>
+          <Text style={styles.promptText}>
+            {this.state.isRecording
+              ? this.state.displayText
+              : 'Tap the mic to start recording.'}
+          </Text>
         </View>
       </View>
     );
@@ -88,9 +88,12 @@ export default class RecordScreen extends React.Component {
   }
 
   handleRecordPress(isRecording) {
-    this.setState({
-      isRecording
-    }, () => this._startOrStop());
+    this.setState(
+      {
+        isRecording
+      },
+      () => this._startOrStop()
+    );
   }
 
   _startOrStop() {
@@ -115,13 +118,16 @@ export default class RecordScreen extends React.Component {
 
   _toggleSpeech() {
     if (this.state.isRecording) {
-      this.setState({
-        fillers: {},
-        bufferPos: 0,
-        transcript: [],
-        displayText: [],
-        startTime: new Date(),
-      }, () => Voice.start('en'));
+      this.setState(
+        {
+          fillers: {},
+          bufferPos: 0,
+          transcript: [],
+          displayText: [],
+          startTime: new Date()
+        },
+        () => Voice.start('en')
+      );
     } else {
       Voice.stop();
     }
@@ -134,7 +140,7 @@ export default class RecordScreen extends React.Component {
     const rec = mock.createRecording({
       fillers,
       created: startTime,
-      transcript: fullTrans,
+      transcript: fullTrans
     });
     const updatedRecs = await storage.add(rec);
     this.props.screenProps.setAppState({
@@ -144,9 +150,7 @@ export default class RecordScreen extends React.Component {
 
   _buildRegEx() {
     const { fillerWords } = this.props.screenProps.appState.settings;
-    const fillerRegEx = new RegExp(
-      `\\b${fillerWords.join('\\b|\\b')}\\b`, 'i'
-    );
+    const fillerRegEx = new RegExp(`\\b${fillerWords.join('\\b|\\b')}\\b`, 'i');
     this.setState({ fillerRegEx });
   }
 
@@ -160,13 +164,13 @@ export default class RecordScreen extends React.Component {
     const isPlaySound = this.props.screenProps.appState.settings.playSound;
 
     if (!text || !this.state.isRecording) return;
-    const clip = text.substring(this.state.bufferPos)
+    const clip = text.substring(this.state.bufferPos);
     const phraseBuffer = clip.substring(clip.indexOf(' '));
-    const matches =  phraseBuffer.match(this.state.fillerRegEx);
+    const matches = phraseBuffer.match(this.state.fillerRegEx);
 
     this.setState({
       lastBuffer: phraseBuffer,
-      displayText: [clip.substring(text.length - 30)],
+      displayText: text.substring(text.length - 30)
     });
 
     if (!matches) return;
@@ -174,10 +178,10 @@ export default class RecordScreen extends React.Component {
     const prevText = phraseBuffer.substring(0, matches.index);
     const transcript = this.state.transcript.concat([prevText.trim(), filler]);
 
-    this._incFillerCount(filler)
+    this._incFillerCount(filler);
     this.setState({
       transcript,
-      bufferPos: this.state.bufferPos + matches.index + filler.length,
+      bufferPos: this.state.bufferPos + matches.index + filler.length
     });
     if (isPlaySound) sound.playSound();
   }
