@@ -19,7 +19,7 @@ function generateRecording() {
   return {
     created,
     transcript:
-      'A few weeks ago, um I met a CMO named Tammy in the office kitchen at OpenView Venture Partners. Like, she was chewing on a bagel during a lunch break from the VC firm’s all-day speaker event, and like she was clearly upset.',
+      ['A few weeks ago, um I met a CMO named Tammy in the office kitchen at OpenView Venture Partners.', 'Like', ' she was chewing on a bagel during a lunch break from the VC firm’s all-day speaker event, and', 'like', 'she was clearly upset.'],
     results: {
       time: {
         value: time * 60 * 60,
@@ -76,8 +76,9 @@ function mockRecording() {
 
 function createRecording({ created, transcript, fillers }) {
   const now = new Date();
+  console.log(created, now);
   const duration = dateFns.differenceInMilliseconds(now, created);
-  const totalWords = transcript.split(' ').length;
+  const totalWords = transcript.join(' ').split(' ').length;
   const pace = Math.round(totalWords / ((duration / 1000) / 60));
   const fillerCount = Object.keys(fillers).reduce((count, word) => {
     return count + fillers[word];

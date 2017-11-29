@@ -32,10 +32,10 @@ export default class RecordScreen extends React.Component {
     currentTime: 0,
     isRecording: false,
     fillerRegEx: null,
-    transcript: '',
+    bufferPos: 0,
     displayText: '',
-    lastDiff: null,
-    fillers: {}
+    transcript: [],
+    fillers: {},
   };
 
   render() {
@@ -88,93 +88,96 @@ export default class RecordScreen extends React.Component {
 
   handleRecordPress(isRecording) {
     this.setState({
-      isRecording,
-      startTime: new Date()
-    });
+      isRecording
+    }, () => this._startOrStop());
+  }
 
+  _startOrStop() {
     this._toggleTimer();
     this._toggleSpeech();
-
-    if (!isRecording) this._addRecording();
+    this._addRecording();
   }
 
   _toggleTimer() {
-    if (this.state.isRecording) {
+    if (!this.state.isRecording) {
       clearInterval(this.state.timer);
-    } else {
-      this._buildRegEx();
-      this.setState({ currentTime: 0 });
-      this.state.timer = setInterval(() => {
-        current = new Date() - this.state.startTime;
-        this.setState({ currentTime: Math.floor(current / 1000) });
-      }, 1000);
+      return;
     }
+
+    this._buildRegEx();
+    this.setState({ currentTime: 0 });
+    this.state.timer = setInterval(() => {
+      current = new Date() - this.state.startTime;
+      this.setState({ currentTime: Math.floor(current / 1000) });
+    }, 1000);
   }
 
   _toggleSpeech() {
     if (this.state.isRecording) {
-      Voice.stop();
-    } else {
       this.setState({
-        transcript: '',
+        fillers: {},
+        bufferPos: 0,
+        transcript: [],
         displayText: '',
-        lastDiff: null,
-        fillers: {}
-      });
-      Voice.start('en');
+        startTime: new Date(),
+      }, () => Voice.start('en'));
+    } else {
+      Voice.stop();
     }
   }
 
   _addRecording = async () => {
+    if (this.state.isRecording) return;
+    const { startTime, transcript, lastBuffer, fillers } = this.state;
+    const fullTrans = transcript.concat([lastBuffer.trim()]);
     const rec = mock.createRecording({
-      created: this.state.startTime,
-      transcript: this.state.transcript,
-      fillers: this.state.fillers
+      fillers,
+      created: startTime,
+      transcript: fullTrans,
     });
-    console.log('New Rec: ', rec);
-    const newRecs = await storage.add(rec);
-    const { recordings } = this.props.screenProps.appState;
+    const updatedRecs = await storage.add(rec);
     this.props.screenProps.setAppState({
-      recordings: newRecs
+      recordings: updatedRecs
     });
   };
 
   _buildRegEx() {
     const { fillerWords } = this.props.screenProps.appState.settings;
     const fillerRegEx = new RegExp(
-      `\\b${fillerWords.join('\\b|\\b')}\\b`,
-      'ig'
+      `\\b${fillerWords.join('\\b|\\b')}\\b`, 'i'
     );
     this.setState({ fillerRegEx });
+  }
+
+  _incFillerCount(filler) {
+    if (!this.state.fillers[filler]) this.state.fillers[filler] = 0;
+    this.state.fillers[filler] += 1;
   }
 
   _onSpeechResults({ value }) {
     const text = value.shift();
     const isPlaySound = this.props.screenProps.appState.settings.playSound;
 
-    if (!text) return;
-    if (isPlaySound  && this.state.isRecording) {
-      const endIdx = this.state.transcript.length ;
-      const diff = text.substring(endIdx);
-      if (this.state.lastDiff === diff) return;
-
-      const matches =  diff.match(this.state.fillerRegEx);
-      console.log(diff, matches)
-      if (matches) {
-        matches.forEach((filler) => {
-          sound.playSound();
-          if (!this.state.fillers[filler]) this.state.fillers[filler] = 0;
-          this.state.fillers[filler] += 1;
-        });
-      }
-
-      this.setState({ lastDiff: diff });
-    }
+    if (!text || !this.state.isRecording) return;
+    const clip = text.substring(this.state.bufferPos)
+    const phraseBuffer = clip.substring(clip.indexOf(' '));
+    const matches =  phraseBuffer.match(this.state.fillerRegEx);
 
     this.setState({
-      transcript: text,
+      lastBuffer: phraseBuffer,
       displayText: text.substring(text.length - 30),
     });
+
+    if (!matches) return;
+    const filler = matches[0];
+    const prevText = phraseBuffer.substring(0, matches.index)
+    const transcript = this.state.transcript.concat([prevText.trim(), filler])
+    this._incFillerCount(filler)
+    this.setState({
+      transcript,
+      bufferPos: this.state.bufferPos + matches.index + filler.length,
+    });
+    if (isPlaySound) sound.playSound();
   }
 }
 
