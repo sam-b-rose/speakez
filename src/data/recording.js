@@ -18,8 +18,13 @@ function generateRecording() {
   const fillerCount = fillers.reduce((a, b) => a + b, 0);
   return {
     created,
-    transcript:
-      ['A few weeks ago, um I met a CMO named Tammy in the office kitchen at OpenView Venture Partners.', 'Like', ' she was chewing on a bagel during a lunch break from the VC firm’s all-day speaker event, and', 'like', 'she was clearly upset.'],
+    transcript: [
+      'A few weeks ago, um I met a CMO named Tammy in the office kitchen at OpenView Venture Partners.',
+      'Like', 'she was chewing on a bagel during a lunch break from the VC firm’s all-day speaker event, and',
+      'like', 'she was clearly upset. But',
+      'you know', 'I don\'t think she was really considering the consequences of morning in a public space.',
+      'Just', 'think about the drama and rummors that could be started around her distress. The aweful thinks people say.',
+      'Like', 'I sort of understand her situation, but why here?'],
     results: {
       time: {
         value: time * 60 * 60,

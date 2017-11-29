@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { ScrollView, View, StyleSheet } from 'react-native';
 import { Icon, Row, Text } from '@shoutem/ui';
 import Touchable from 'react-native-platform-touchable';
 import { VictoryAxis, VictoryBar, VictoryChart, VictoryLabel } from 'victory-native';
 
+import HighlightText from '../components/HighlightText';
 import Colors from '../constants/Colors';
 
 export default class MetricScreen extends React.Component {
@@ -37,7 +38,6 @@ export default class MetricScreen extends React.Component {
               axis: {stroke: Colors.tabIconDefault},
               tickLabels: {color: Colors.lightTextColor}
             }}
-            tickFormat={(t) => Math.round(t)}
           />
           <VictoryBar
             horizontal
@@ -47,9 +47,11 @@ export default class MetricScreen extends React.Component {
             y="count"
           />
         </VictoryChart>
-        <Text style={StyleSheet.flatten(styles.transcript)}>
-          {transcript.join(' ')}
-        </Text>
+        <ScrollView>
+          <HighlightText style={StyleSheet.flatten(styles.transcript)}>
+            {transcript}
+          </HighlightText>
+        </ScrollView>
       </View>
     );
   }
@@ -60,6 +62,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   transcript: {
-    margin: 20
+    margin: 30,
+    fontSize: 18,
   }
 });
