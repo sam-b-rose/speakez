@@ -7,6 +7,7 @@ import {
   View,
   Button
 } from 'react-native';
+import HighlightedText from '../components/HighlightText';
 import Touchable from 'react-native-platform-touchable';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
@@ -33,7 +34,7 @@ export default class RecordScreen extends React.Component {
     isRecording: false,
     fillerRegEx: null,
     bufferPos: 0,
-    displayText: '',
+    displayText: [],
     transcript: [],
     fillers: {},
   };
@@ -70,13 +71,13 @@ export default class RecordScreen extends React.Component {
           </View>
         </Touchable>
         <View style={styles.promptContainer}>
-          <Text style={styles.promptText}>
+          <HighlightedText style={styles.promptText}>
             {this.state.isRecording ? (
               this.state.displayText
             ) : (
-              'Tap the mic to start recording.'
+              ['Tap the mic to start recording.']
             )}
-          </Text>
+          </HighlightedText>
         </View>
       </View>
     );
@@ -118,7 +119,7 @@ export default class RecordScreen extends React.Component {
         fillers: {},
         bufferPos: 0,
         transcript: [],
-        displayText: '',
+        displayText: [],
         startTime: new Date(),
       }, () => Voice.start('en'));
     } else {
@@ -165,13 +166,14 @@ export default class RecordScreen extends React.Component {
 
     this.setState({
       lastBuffer: phraseBuffer,
-      displayText: text.substring(text.length - 30),
+      displayText: [clip.substring(text.length - 30)],
     });
 
     if (!matches) return;
     const filler = matches[0];
-    const prevText = phraseBuffer.substring(0, matches.index)
-    const transcript = this.state.transcript.concat([prevText.trim(), filler])
+    const prevText = phraseBuffer.substring(0, matches.index);
+    const transcript = this.state.transcript.concat([prevText.trim(), filler]);
+
     this._incFillerCount(filler)
     this.setState({
       transcript,
